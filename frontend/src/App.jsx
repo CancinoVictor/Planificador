@@ -16,18 +16,34 @@ function App() {
 
   // Agregar materia al horario con validación
   const agregarMateria = (materia) => {
-    const choque = horario.some(item =>
-      item.dias.some(dia => materia.dias.includes(dia)) &&
-      !(
-        tiempoAMinutos(materia.horaFin) <= tiempoAMinutos(item.horaInicio) ||
-        tiempoAMinutos(materia.horaInicio) >= tiempoAMinutos(item.horaFin)
-      )
-    );
-
-    if (choque) {
-      alert("¡Choque de horario con otra materia!");
-    } else if (horario.some(item => item.id === materia.id)) {
+    // Si la materia ya está en el horario
+    if (horario.some(item => item.id === materia.id)) {
       alert("¡Esta materia ya está en tu horario!");
+      return;
+    }
+
+    // Verificar choque de horarios para cada horario de la materia
+    const tieneChoque = materia.horarios.some(nuevoHorario => {
+      return horario.some(materiaExistente => {
+        // Buscar si hay algún horario de la materia existente que choque
+        return materiaExistente.horarios.some(horarioExistente => {
+          // Si es el mismo día
+          if (horarioExistente.dia === nuevoHorario.dia) {
+            // Verificar si los horarios se solapan
+            const inicioNuevo = tiempoAMinutos(nuevoHorario.horaInicio);
+            const finNuevo = tiempoAMinutos(nuevoHorario.horaFin);
+            const inicioExistente = tiempoAMinutos(horarioExistente.horaInicio);
+            const finExistente = tiempoAMinutos(horarioExistente.horaFin);
+
+            return !(finNuevo <= inicioExistente || inicioNuevo >= finExistente);
+          }
+          return false;
+        });
+      });
+    });
+
+    if (tieneChoque) {
+      alert("¡Choque de horario con otra materia!");
     } else {
       setHorario([...horario, materia]);
     }
@@ -45,6 +61,7 @@ function App() {
         <OfertaAcademica
           materias={materias}
           onAgregarMateria={agregarMateria}
+          materiasSeleccionadas={horario}
         />
       </div>
       <div className="lg:col-span-2 bg-gray-50 p-4 rounded-lg shadow">

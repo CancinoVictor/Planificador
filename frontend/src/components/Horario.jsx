@@ -57,7 +57,8 @@ export default function Horario({ materiasEnHorario, onEliminarMateria }) {
             "bg-yellow-200": "border-yellow-500",
             "bg-red-200": "border-red-500",
             "bg-purple-200": "border-purple-500",
-            "bg-pink-200": "border-pink-500"
+            "bg-pink-200": "border-pink-500",
+            "bg-indigo-200": "border-indigo-500"
         }
     };
 
@@ -93,31 +94,42 @@ export default function Horario({ materiasEnHorario, onEliminarMateria }) {
                             </td>
 
                             {diasSemana.map(dia => {
-                                const materia = materiasEnHorario.find(m =>
-                                    m.dias.includes(dia) &&
-                                    ((toMinutes(m.horaInicio) < toMinutes(bloque.fin)) &&
-                                        (toMinutes(m.horaFin) > toMinutes(bloque.inicio)))
-                                );
+                                // Encuentra todas las materias que tienen un horario en este día y bloque
+                                const materiasEnEsteBloque = materiasEnHorario.filter(materia => {
+                                    return materia.horarios.some(horario =>
+                                        horario.dia === dia &&
+                                        ((toMinutes(horario.horaInicio) < toMinutes(bloque.fin)) &&
+                                            (toMinutes(horario.horaFin) > toMinutes(bloque.inicio)))
+                                    );
+                                });
+
+                                // Si hay alguna materia en este bloque, mostrar la primera
+                                const materia = materiasEnEsteBloque.length > 0 ? materiasEnEsteBloque[0] : null;
+
+                                // Si hay materia, encontrar su horario específico para este día
+                                const horarioEspecifico = materia
+                                    ? materia.horarios.find(h => h.dia === dia)
+                                    : null;
 
                                 return (
                                     <td
                                         key={`${dia}-${index}`}
                                         className="px-0 py-0 align-top h-20 min-w-[150px] relative group"
                                     >
-                                        {materia && (
+                                        {materia && horarioEspecifico && (
                                             <div className={`
-                          ${materia.color} ${materiaStyles.colors[materia.color] || materiaStyles.default}
-                          absolute inset-1 flex flex-col justify-between
-                          rounded-md p-1 overflow-hidden
-                          transition-all duration-100
-                          hover:shadow-md hover:z-10
-                        `}>
+                                                ${materia.color} ${materiaStyles.colors[materia.color] || materiaStyles.default}
+                                                absolute inset-1 flex flex-col justify-between
+                                                rounded-md p-1 overflow-hidden
+                                                transition-all duration-100
+                                                hover:shadow-md hover:z-10
+                                            `}>
                                                 <div className="overflow-hidden">
                                                     <h4 className="font-semibold text-xs leading-tight line-clamp-1">
                                                         {materia.nombre}
                                                     </h4>
                                                     <p className="text-[0.65rem] text-gray-700 leading-tight">
-                                                        {materia.horaInicio} - {materia.horaFin}
+                                                        {horarioEspecifico.horaInicio} - {horarioEspecifico.horaFin}
                                                     </p>
                                                     <p className="text-[0.6rem] text-gray-600 line-clamp-1">
                                                         {materia.profesor}
@@ -129,14 +141,14 @@ export default function Horario({ materiasEnHorario, onEliminarMateria }) {
                                                         onEliminarMateria(materia.id);
                                                     }}
                                                     className={`
-                              absolute top-0 right-0 m-1 p-0.5
-                              text-xs text-gray-500 hover:text-red-600
-                              bg-white/80 rounded-full
-                              opacity-0 group-hover:opacity-100
-                              transition-opacity duration-200
-                              w-5 h-5 flex items-center justify-center
-                              shadow-sm hover:shadow-md
-                            `}
+                                                        absolute top-0 right-0 m-1 p-0.5
+                                                        text-xs text-gray-500 hover:text-red-600
+                                                        bg-white/80 rounded-full
+                                                        opacity-0 group-hover:opacity-100
+                                                        transition-opacity duration-200
+                                                        w-5 h-5 flex items-center justify-center
+                                                        shadow-sm hover:shadow-md
+                                                    `}
                                                     aria-label="Eliminar"
                                                 >
                                                     ×
